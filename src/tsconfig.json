@@ -1,0 +1,21 @@
+{
+  "exclude": ["../assets", "../node_modules", "../dist"],
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "_version": "22.0.0",
+    "compilerOptions": {
+      "lib": ["es2024"],
+      "module": "nodenext",
+      "target": "esnext",
+      "outDir": "../dist",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "moduleResolution": "nodenext",
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+      "allowImportingTsExtensions": true,
+     "rewriteRelativeImportExtensions": true,
+     "verbatimModuleSyntax": true
+    }
+  }

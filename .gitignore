@@ -1,0 +1,5 @@
+dist/
+node_modules/
+.npmrc
+test/*.json
+assets/index.js

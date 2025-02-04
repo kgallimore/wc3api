@@ -1,0 +1,1 @@
+[For Electron Installations](https://github.com/kessler/node-regedit?tab=readme-ov-file#a-note-about-electron)
