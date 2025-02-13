@@ -12,12 +12,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "description": "",
   "dependencies": {
-    "@nut-tree/bolt": "^2.2.2",
-    "@nut-tree/element-inspector": "^0.2.1",
-    "@nut-tree/nut-js": "^4.5.1",
     "regedit": "^5.1.3",
     "ws": "^8.18.0"
   },

@@ -3,3 +3,5 @@ node_modules/
 .npmrc
 test/*.json
 assets/index.js
+assets/win-api-rs.exe
+win-api-rs/target/

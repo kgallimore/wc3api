@@ -1,21 +1,9 @@
-import {
-  screen,
-  windowWithTitle,
-  mouse,
-  centerOf,
-  Button,
-} from "@nut-tree/nut-js";
-import { useBolt } from "@nut-tree/bolt";
-import "@nut-tree/element-inspector";
-import {
-  windowElementDescribedBy,
-  elements,
-} from "@nut-tree/element-inspector/win";
-import { exec } from "child_process";
+import { exec, execFile } from "child_process";
 import { promisify } from "util";
+import { __dirname } from "./index.ts";
+import { join } from "path";
 const runCmd = promisify(exec);
-
-useBolt();
+const runFile = promisify(execFile);
 
 interface ReturnData {
   error?: string;
@@ -23,7 +11,6 @@ interface ReturnData {
 
 interface State {
   battleNetOpen: Promise<boolean>;
-  battleNetVisible: Promise<boolean>;
   warcraftOpen: Promise<boolean>;
   openingBattleNet: boolean;
   openingWarcraft: boolean;
@@ -44,9 +31,6 @@ async function sleep(ms: number) {
 
 export class WarControl {
   state: State = {
-    get battleNetVisible() {
-      return checkWindowVisible("Battle.net");
-    },
     get battleNetOpen() {
       return checkProcessRunning("Battle.net.exe");
     },
@@ -64,10 +48,10 @@ export class WarControl {
     this.warInstallLoc = warInstallLoc;
   }
 
-  async openWarcraft(region?: WarcraftRegions): Promise<ReturnData> {
+  async openWarcraft(): Promise<ReturnData> {
     if (this.state.openingWarcraft === true)
       return { error: "Already opening Warcraft" };
-    if (!(await this.state.battleNetVisible)) {
+    if (!(await this.state.battleNetOpen)) {
       const openBattleNet = await this.openBattleNet();
       if (openBattleNet.error) return openBattleNet;
     }
@@ -75,7 +59,7 @@ export class WarControl {
     this.setCurrentAction("openingWarcraft");
     var retError: string | undefined = undefined;
     try {
-      const { error } = await this.openWarcraftAction(region);
+      const { error } = await this.openWarcraftAction();
       retError = error;
     } catch (e) {
       retError = e as string;
@@ -102,14 +86,14 @@ export class WarControl {
     return retError ? { error: retError } : {};
   }
 
-  async clickPlay(region?: WarcraftRegions): Promise<ReturnData> {
+  async clickPlay(): Promise<ReturnData> {
     if (this.state.clickingPlay === true)
       return { error: "Action clicking play" };
     this.setCurrentAction("clickingPlay");
     this.state.clickingPlay = true;
     var retError: string | undefined = undefined;
     try {
-      const { error } = await this.clickPlayAction(region);
+      const { error } = await this.clickPlayAction();
       retError = error;
     } catch (e) {
       retError = e as string;
@@ -124,7 +108,7 @@ export class WarControl {
   ): Promise<ReturnData> {
     overRides;
     let tries = 0;
-    while (tries < overRides.maxTries && !(await this.state.battleNetVisible)) {
+    while (tries < overRides.maxTries && !(await this.state.battleNetOpen)) {
       tries++;
       if (tries % 2)
         await runCmd(
@@ -137,12 +121,9 @@ export class WarControl {
       : { error: "Failed to open Battle.Net" };
   }
 
-  private async openWarcraftAction(
-    region?: WarcraftRegions,
-    overRides = { maxTries: 20, delay: 250 }
-  ) {
+  private async openWarcraftAction(overRides = { maxTries: 20, delay: 250 }) {
     let tries = 0;
-    const clickPlay = await this.clickPlay(region);
+    const clickPlay = await this.clickPlay();
     if (clickPlay.error) return clickPlay;
     while (tries < overRides.maxTries && !(await this.state.warcraftOpen)) {
       tries++;
@@ -153,60 +134,8 @@ export class WarControl {
       : { error: "Failed to open Warcraft" };
   }
 
-  private async clickPlayAction(region?: WarcraftRegions): Promise<ReturnData> {
-    const battleNetWindow = await screen.find(windowWithTitle(/Battle\.net/));
-    await battleNetWindow.focus();
-    await battleNetWindow.move({ x: 0, y: 0 });
-    await sleep(100);
-    const findCloseNews = await battleNetWindow.findAll(
-      windowElementDescribedBy({ title: "Close", type: "Button" })
-    );
-    if (findCloseNews[0]?.region) {
-      await mouse.setPosition(await centerOf(findCloseNews[0]?.region));
-      await mouse.leftClick();
-    }
-
-    if (region) {
-      this.setCurrentAction("changingRegion");
-      const changeRegionButton = await battleNetWindow.find(
-        elements.menuItem({ title: "Regions", role: "widget" })
-      );
-      if (!changeRegionButton.region)
-        return { error: "Change region button not found" };
-
-      await mouse.setPosition(await centerOf(changeRegionButton.region));
-      await mouse.leftClick();
-      await sleep(100);
-
-      try {
-        const regionButtons = await battleNetWindow.find(
-          elements.menuItem({
-            id: new RegExp(/DropdownMenu/, "g"),
-            type: "MenuItem",
-            role: "menuitem",
-            title: region,
-          })
-        );
-        console.log("finding regions");
-
-        if (!regionButtons?.region) return { error: "Region button not found" };
-        await mouse.setPosition(await centerOf(regionButtons.region));
-        await mouse.leftClick();
-      } catch (e) {
-        console.log("finding regions2");
-
-        return { error: ("Error finding region buttons: " + e) as string };
-      }
-    }
-
-    const playButton = await battleNetWindow.find(
-      windowElementDescribedBy({ id: "play-btn-main" })
-    );
-    if (playButton.region == null) return { error: "Play button not found" };
-
-    await mouse.setPosition(centerOf(playButton.region));
-    await mouse.click(Button.LEFT);
-
+  private async clickPlayAction(): Promise<ReturnData> {
+    runFile(join(__dirname, "..", "assets", "win-api-rs.exe"));
     return {};
   }
 
@@ -227,17 +156,5 @@ async function checkProcessRunning(processName: string) {
     } else {
       return false;
     }
-  }
-}
-
-async function checkWindowVisible(
-  windowName: RegExp | string
-): Promise<boolean> {
-  console.log("Checking window visible", windowName);
-  try {
-    await screen.find(windowWithTitle(windowName));
-    return true;
-  } catch (error) {
-    return false;
   }
 }

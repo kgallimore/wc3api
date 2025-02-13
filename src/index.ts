@@ -1,9 +1,12 @@
 import { WebSocketServer } from "ws";
+import { fileURLToPath } from "url";
+import { dirname } from "node:path";
 import { WarControl } from "./warControl.ts";
 import { getInstallLocation } from "./setup.ts";
 import type { RootObject as SendCommands } from "./../test/send_types.ts";
 import type { RootObject as ReceiveData } from "./../test/receive_types.ts";
-
+const __filename = fileURLToPath(import.meta.url);
+export const __dirname = dirname(__filename);
 export class WC3API {
   webUiServer = new WebSocketServer({ port: 8888 });
   gameWebsocket: WebSocket | null = null;
@@ -47,4 +50,4 @@ export class WC3API {
 
 const ctrl = new WarControl(await getInstallLocation());
 
-console.log(await ctrl.openWarcraft("Asia"));
+console.log(await ctrl.openWarcraft());
