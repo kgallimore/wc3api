@@ -1,6 +1,10 @@
 "use strict";
 let webSocket: WebSocket | null;
 let clientWS: WebSocket | null;
+import type {
+  GameWebClientMessages,
+  GameClientCommands,
+} from "./../test/GameWebClientMessages";
 
 const state = {
   selfRegion: "",
@@ -33,27 +37,31 @@ function clientWSSetup() {
   if (guid) {
     clientWS = new WebSocket("ws://" + location.host + "/webui-socket/" + guid);
     clientWS.onmessage = function (event) {
-      const message = JSON.parse(event.data);
-      const messageType = message.messageType;
-      const payload = message.payload;
-      if (payload && messageType) {
-        if (messageType === "SetGlueScreen") {
-          if (
-            state.menuState === "LOADING_SCREEN" &&
-            payload.screen === "SCORE_SCREEN"
-          ) {
-            state.inGame = true;
-          } else {
-            state.inGame = false;
-          }
-          state.menuState = payload.screen;
-        } else if (messageType === "UpdateUserInfo") {
-          state.selfBattleTag = payload.user.battleTag;
-          state.selfRegion = payload.user.userRegion;
-        } else if (messageType === "ScreenTransitionInfo") {
-          state.screenState = payload.screen;
+      const message = JSON.parse(event.data) as GameWebClientMessages;
+      if (message.messageType === "SetGlueScreen") {
+        if (
+          state.menuState === "LOADING_SCREEN" &&
+          message.payload.screen === "SCORE_SCREEN"
+        ) {
+          state.inGame = true;
+        } else {
+          state.inGame = false;
         }
+        state.menuState = message.payload.screen;
+      } else if (message.messageType === "UpdateUserInfo") {
+        state.selfBattleTag = message.payload.user.battleTag;
+        state.selfRegion = message.payload.user.userRegion;
       }
+      //  else if (
+      //   message.messageType === "ChatMessage" &&
+      //   message.payload.message.sender &&
+      //   message.payload.message.source === "gameChat"
+      // ) {
+      //   clientSend({
+      //     message: "PlaySound",
+      //     payload: { sound: "MenuButtonClick" },
+      //   });
+      // }
     };
     clientWS.onopen = function (_event) {
       sendSocket("info", "Webui Connected!");
@@ -67,9 +75,10 @@ function clientWSSetup() {
     };
   }
 }
-function clientSend(message: any) {
+function clientSend(message: GameClientCommands) {
   if (clientWS && clientWS.readyState === 1) {
-    clientWS.send(JSON.stringify({ message }));
+    addLog("Sending message to clientWS:" + JSON.stringify(message));
+    clientWS.send(JSON.stringify(message));
   }
 }
 function wsSetup() {

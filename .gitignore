@@ -5,3 +5,4 @@ test/*.json
 assets/index.js
 assets/win-api-rs.exe
 win-api-rs/target/
+assets/buzz.mp3

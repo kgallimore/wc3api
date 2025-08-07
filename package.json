@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/index.ts",
     "test": "node --watch test/index.ts",
-    "build:webui": "cd webui && tsc",
+    "build:webui": "esbuild webui/index.ts --bundle --outfile=assets/index.js --platform=browser --format=esm && node test/install.ts",
     "build:main": "cd src && tsc",
     "build": "npm run build:main && npm run build:webui"
   },
@@ -19,12 +19,13 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
-    "@fastify/cors": "^11.0.1",
-    "@types/node": "^24.0.10",
+    "@fastify/cors": "^11.1.0",
+    "@types/node": "^24.2.0",
     "@types/ws": "^8.18.1",
+    "esbuild": "^0.25.8",
     "fastify": "^5.4.0",
     "json-to-ts": "^2.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9"
@@ -32,6 +33,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "bufferutil",
+      "esbuild",
       "koffi"
     ]
   }

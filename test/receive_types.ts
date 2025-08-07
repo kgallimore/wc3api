@@ -60,6 +60,24 @@ export interface RootObject {
   MultiplayerRecentPlayers: MultiplayerRecentPlayers;
   OptionsData: OptionsData;
   SwitchToNextScreenInstantly: PreloadComplete;
+  SetGameplaySDCampaignScreens: SetGameplaySDCampaignScreens;
+  RankedSeasonStatsUpdate: RankedSeasonStatsUpdate;
+}
+interface RankedSeasonStatsUpdate {
+  seasonStats: SeasonStats;
+}
+interface SeasonStats {
+  seasonId: number;
+  startTime: number;
+  endTime: number;
+  divisions: Division[];
+  stats: Stats2;
+}
+interface Stats2 {
+  "1v1": Clan;
+}
+interface SetGameplaySDCampaignScreens {
+  showSDCampaignScreens: number;
 }
 interface OptionsData {
   options: Options;
